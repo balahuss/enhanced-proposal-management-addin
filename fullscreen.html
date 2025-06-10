@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Enhanced Proposal Management - Full Dashboard</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    
+    <!-- Fluent UI CSS -->
+    <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css">
+    
+    <style>
+        /* Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+            font-size: 14px;
+            background: #faf9f8;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Main Layout */
+        .dashboard-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+            padding: 16px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin: 2px 0 0 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .user-role {
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        /* Navigation */
+        .dashboard-nav {
+            background: white;
+            border-bottom: 1px solid #edebe9;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: #605e5c;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            color: #0078d4;
+            background: #f3f2f1;
+        }
+
+        .nav-tab.active {
+            color: #0078d4;
+            border-bottom-color: #0078d4;
+            background: #fff;
+        }
+
+        /* Main Content */
+        .dashboard-body {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .view {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border: 1px solid #edebe9;
+            border-radius: 4px;
+            box-shadow: 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.132);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #edebe9;
+            background: #faf9f8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #edebe9;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0078d4;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #605e5c;
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #323130;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #8a8886;
+            border-radius: 2px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.3);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-radius: 2px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background-color: #0078d4;
+            color: white;
+            border-color: #0078d4;
+        }
+
+        .btn-primary:hover {
+            background-color: #106ebe;
+        }
+
+        .btn-secondary {
+            background-color: #f3f2f1;
+            color: #323130;
+            border-color: #8a8886;
+        }
+
+        .btn-secondary:hover {
+            background-color: #edebe9;
+        }
+
+        .btn-success {
+            background-color: #107c10;
+            color: white;
+            border-color: #107c10;
+        }
+
+        .btn-success:hover {
+            background-color: #0e6e0e;
+        }
+
+        /* Table Styles */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #edebe9;
+        }
+
+        .table th {
+            background-color: #f3f2f1;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .table tr:hover {
+            background-color: #faf9f8;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #605e5c;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #edebe9;
+            border-top: 2px solid #0078d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 2px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background-color: #fff4ce;
+            color: #8a4700;
+        }
+
+        .status-approved {
+            background-color: #dff6dd;
+            color: #0e6e0e;
+        }
+
+        .status-rejected {
+            background-color: #fde7e9;
+            color: #b52e31;
+        }
+
+        .status-resubmit {
+            background-color: #cce7ff;
+            color: #0d47a1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .header-left,
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .view {
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-left">
+                <div>
+                    <div class="header-title">
+                        📊 Enhanced Proposal Management
+                    </div>
+                    <div class="header-subtitle">Comprehensive Dashboard</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info" id="user-info">
+                    <div class="user-name" id="user-name">Loading...</div>
+                    <div class="user-role" id="user-role">Please wait</div>
+                </div>
+                <button class="btn btn-secondary" onclick="FullscreenApp.logout()">
+                    🚪 Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="dashboard-nav">
+            <ul class="nav-tabs">
+                <li class="nav-tab active" data-view="dashboard" onclick="FullscreenApp.showView('dashboard')">
+                    📈 Dashboard
+                </li>
+                <li class="nav-tab" data-view="proposals" onclick="FullscreenApp.showView('proposals')">
+                    📋 Proposals
+                </li>
+                <li class="nav-tab" data-view="budget" onclick="FullscreenApp.showView('budget')">
+                    💰 Budget
+                </li>
+                <li class="nav-tab" data-view="settings" onclick="FullscreenApp.showView('settings')">
+                    ⚙️ Settings
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dashboard-body">
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view active">
+                <!-- Stats Overview -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-total-proposals">0</span>
+                        <div class="stat-label">Total Proposals</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-pending-proposals">0</span>
+                        <div class="stat-label">Pending Review</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-approved-proposals">0</span>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-total-budget">₦0</span>
+                        <div class="stat-label">Total Budget</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📊 Recent Activity</h3>
+                        <button class="btn btn-primary" onclick="FullscreenApp.refreshDashboard()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-activity">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                Loading recent activity...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proposals View -->
+            <div id="proposals-view" class="view">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📋 Proposal Management</h3>
+                        <div class="header-actions">
+                            <button class="btn btn-success" onclick="FullscreenApp.newProposal()">
+                                ➕ New Proposal
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="search-bar">
+                            <input type="text" class="form-input search-input" id="proposals-search" 
+                                   placeholder="Search proposals..." onkeyup="FullscreenApp.searchProposals()">
+                            <select class="form-select" id="status-filter" onchange="FullscreenApp.filterProposals()">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="resubmit">Needs Revision</option>
+                            </select>
+                        </div>
+                        
+                        <div id="proposals-table-container">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                Loading proposals...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget Management View -->
+            <div id="budget-view" class="view">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">💰 Budget Management</h3>
+                        <button class="btn btn-success" onclick="FullscreenApp.addCostItem()">
+                            ➕ Add Cost Item
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="budget-content">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                Loading budget information...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settings-view" class="view">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">⚙️ System Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="settings-content">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Excel Integration</label>
+                                    <button class="btn btn-primary" onclick="FullscreenApp.syncExcel()">
+                                        🔄 Sync with Excel
+                                    </button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">System Status</label>
+                                    <button class="btn btn-secondary" onclick="FullscreenApp.checkSystemStatus()">
+                                        🏥 Check Status
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fullscreen JavaScript will be loaded here by webpack
+        console.log('🖥️ Fullscreen Dashboard HTML loaded');
+    </script>
+</body>
+</html>
