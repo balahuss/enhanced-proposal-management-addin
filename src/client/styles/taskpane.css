@@ -1,0 +1,915 @@
+/* ======================================
+   TASKPANE.CSS - TASKPANE SPECIFIC STYLES
+   ====================================== */
+
+/* ======================================
+   TASKPANE VARIABLES
+   ====================================== */
+
+:root {
+  /* Taskpane specific spacing */
+  --taskpane-padding: 12px;
+  --taskpane-gap: 8px;
+  --taskpane-border-radius: 4px;
+  
+  /* Taskpane colors */
+  --taskpane-header-bg: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+  --taskpane-bg: #faf9f8;
+  --taskpane-surface: #ffffff;
+  --taskpane-border: #edebe9;
+  
+  /* Taskpane typography */
+  --taskpane-font-size: 12px;
+  --taskpane-font-size-sm: 11px;
+  --taskpane-font-size-xs: 10px;
+  --taskpane-line-height: 1.4;
+  
+  /* Status colors */
+  --status-connecting: #ff8c00;
+  --status-connected: #107c10;
+  --status-error: #d13438;
+  --status-syncing: #0078d4;
+}
+
+/* ======================================
+   TASKPANE LAYOUT
+   ====================================== */
+
+.taskpane-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: var(--taskpane-font-size);
+  line-height: var(--taskpane-line-height);
+  background: var(--taskpane-bg);
+}
+
+/* ======================================
+   TASKPANE HEADER
+   ====================================== */
+
+.taskpane-header {
+  background: var(--taskpane-header-bg);
+  color: white;
+  padding: var(--taskpane-padding) var(--taskpane-padding);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.taskpane-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.header-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--taskpane-gap);
+}
+
+.header-title .icon {
+  font-size: 16px;
+}
+
+.header-subtitle {
+  font-size: var(--taskpane-font-size-sm);
+  opacity: 0.9;
+  margin: 2px 0 0 0;
+  font-weight: 400;
+}
+
+/* ======================================
+   STATUS BAR
+   ====================================== */
+
+.status-bar {
+  padding: var(--taskpane-gap) var(--taskpane-padding);
+  background: var(--taskpane-surface);
+  border-bottom: 1px solid var(--taskpane-border);
+  font-size: var(--taskpane-font-size-sm);
+  color: #605e5c;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-connected);
+  transition: all 0.3s ease;
+}
+
+.status-dot.connecting {
+  background: var(--status-connecting);
+  animation: pulse 2s infinite;
+}
+
+.status-dot.disconnected {
+  background: var(--status-error);
+  animation: none;
+}
+
+.status-dot.error {
+  background: var(--status-error);
+  animation: flash 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.9); }
+}
+
+@keyframes flash {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.3; }
+}
+
+.excel-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--taskpane-font-size-sm);
+}
+
+.excel-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-connected);
+  transition: all 0.3s ease;
+}
+
+.excel-indicator.syncing {
+  background: var(--status-syncing);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.excel-indicator.error {
+  background: var(--status-error);
+}
+
+.protection-indicator {
+  font-size: var(--taskpane-font-size-xs);
+  color: #605e5c;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.protection-indicator.active {
+  color: var(--status-connected);
+}
+
+/* ======================================
+   TASKPANE BODY
+   ====================================== */
+
+.taskpane-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--taskpane-padding);
+  background: var(--taskpane-bg);
+}
+
+/* Custom scrollbar for taskpane */
+.taskpane-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.taskpane-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.taskpane-body::-webkit-scrollbar-thumb {
+  background: #c8c6c4;
+  border-radius: 3px;
+}
+
+.taskpane-body::-webkit-scrollbar-thumb:hover {
+  background: #a19f9d;
+}
+
+/* ======================================
+   TASKPANE VIEWS
+   ====================================== */
+
+.view {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.view.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ======================================
+   LOGIN VIEW
+   ====================================== */
+
+.login-view {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  text-align: center;
+  padding: var(--taskpane-padding);
+}
+
+.login-logo {
+  width: 48px;
+  height: 48px;
+  background: var(--taskpane-header-bg);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+}
+
+.login-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: var(--taskpane-gap);
+  color: #323130;
+}
+
+.login-subtitle {
+  font-size: var(--taskpane-font-size);
+  color: #605e5c;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 280px;
+}
+
+.login-message {
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* ======================================
+   FORM COMPONENTS (TASKPANE SPECIFIC)
+   ====================================== */
+
+.form-group {
+  margin-bottom: var(--taskpane-padding);
+  text-align: left;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--taskpane-font-size);
+  font-weight: 500;
+  color: #323130;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 6px var(--taskpane-gap);
+  border: 1px solid #8a8886;
+  border-radius: var(--taskpane-border-radius);
+  font-size: var(--taskpane-font-size);
+  font-family: inherit;
+  background: var(--taskpane-surface);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #0078d4;
+  box-shadow: 0 0 0 1px #0078d4;
+}
+
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled {
+  background-color: #f3f2f1;
+  border-color: #c8c6c4;
+  color: #a19f9d;
+  cursor: not-allowed;
+}
+
+/* ======================================
+   BUTTON COMPONENTS (TASKPANE SPECIFIC)
+   ====================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px var(--taskpane-padding);
+  border: 1px solid transparent;
+  border-radius: var(--taskpane-border-radius);
+  font-size: var(--taskpane-font-size);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  gap: 4px;
+  line-height: 1;
+  user-select: none;
+  min-height: 28px;
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.3);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-primary {
+  background-color: #0078d4;
+  color: white;
+  border-color: #0078d4;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #106ebe;
+  border-color: #106ebe;
+}
+
+.btn-secondary {
+  background-color: #f3f2f1;
+  color: #323130;
+  border-color: #8a8886;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #edebe9;
+  border-color: #605e5c;
+}
+
+.btn-success {
+  background-color: #107c10;
+  color: white;
+  border-color: #107c10;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #0e6b0e;
+}
+
+.btn-warning {
+  background-color: #ff8c00;
+  color: white;
+  border-color: #ff8c00;
+}
+
+.btn-danger {
+  background-color: #d13438;
+  color: white;
+  border-color: #d13438;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #0078d4;
+  border-color: #0078d4;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: #0078d4;
+  color: white;
+}
+
+.btn-small {
+  padding: 4px var(--taskpane-gap);
+  font-size: var(--taskpane-font-size-sm);
+  min-height: 24px;
+}
+
+.btn-block {
+  width: 100%;
+  margin-bottom: var(--taskpane-gap);
+}
+
+.btn-icon {
+  padding: 6px;
+  min-width: 28px;
+}
+
+/* ======================================
+   STATS GRID
+   ====================================== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--taskpane-gap);
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--taskpane-surface);
+  border: 1px solid var(--taskpane-border);
+  border-radius: var(--taskpane-border-radius);
+  padding: 10px var(--taskpane-gap);
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.stat-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0078d4;
+  display: block;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: var(--taskpane-font-size-xs);
+  color: #605e5c;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ======================================
+   ACTION GRID
+   ====================================== */
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--taskpane-gap);
+  margin-bottom: 16px;
+}
+
+.action-card {
+  background: var(--taskpane-surface);
+  border: 1px solid var(--taskpane-border);
+  border-radius: var(--taskpane-border-radius);
+  padding: var(--taskpane-padding);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 60px;
+  justify-content: center;
+}
+
+.action-card:hover {
+  background: #f3f2f1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+}
+
+.action-card-icon {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.action-card-title {
+  font-size: var(--taskpane-font-size-xs);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* ======================================
+   RECENT PROPOSALS
+   ====================================== */
+
+.recent-proposals {
+  background: var(--taskpane-surface);
+  border: 1px solid var(--taskpane-border);
+  border-radius: var(--taskpane-border-radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.recent-item {
+  padding: 10px var(--taskpane-padding);
+  border-bottom: 1px solid #f3f2f1;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.recent-item:hover {
+  background-color: #faf9f8;
+}
+
+.recent-item-title {
+  font-weight: 500;
+  color: #323130;
+  margin-bottom: 4px;
+  font-size: var(--taskpane-font-size);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-item-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--taskpane-font-size-sm);
+  color: #605e5c;
+}
+
+.recent-item-date {
+  font-size: var(--taskpane-font-size-xs);
+  color: #8a8886;
+}
+
+/* ======================================
+   STATUS BADGES (TASKPANE SPECIFIC)
+   ====================================== */
+
+.status-badge {
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: var(--taskpane-font-size-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+.status-pending {
+  background-color: #fff4ce;
+  color: #8a4700;
+}
+
+.status-approved {
+  background-color: #dff6dd;
+  color: #0e6e0e;
+}
+
+.status-rejected {
+  background-color: #fde7e9;
+  color: #b52e31;
+}
+
+.status-resubmit {
+  background-color: #cce7ff;
+  color: #0d47a1;
+}
+
+/* ======================================
+   SECTION TITLES
+   ====================================== */
+
+.section-title {
+  font-size: var(--taskpane-font-size);
+  font-weight: 600;
+  margin-bottom: var(--taskpane-gap);
+  color: #323130;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-title .icon {
+  font-size: 14px;
+}
+
+/* ======================================
+   MESSAGES
+   ====================================== */
+
+.message {
+  padding: var(--taskpane-gap) var(--taskpane-padding);
+  margin-bottom: var(--taskpane-padding);
+  border-radius: var(--taskpane-border-radius);
+  font-size: var(--taskpane-font-size);
+  display: flex;
+  align-items: center;
+  gap: var(--taskpane-gap);
+  position: relative;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.message-success {
+  background: #dff6dd;
+  color: #0e6e0e;
+  border: 1px solid #107c10;
+}
+
+.message-error {
+  background: #fde7e9;
+  color: #b52e31;
+  border: 1px solid #d13438;
+}
+
+.message-warning {
+  background: #fff4ce;
+  color: #8a4700;
+  border: 1px solid #ff8c00;
+}
+
+.message-info {
+  background: #cce7ff;
+  color: #0d47a1;
+  border: 1px solid #0078d4;
+}
+
+.message button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: auto;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.message button:hover {
+  opacity: 1;
+}
+
+/* ======================================
+   LOADING STATES
+   ====================================== */
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px var(--taskpane-padding);
+  color: #605e5c;
+  gap: var(--taskpane-gap);
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #edebe9;
+  border-top: 2px solid #0078d4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ======================================
+   EMPTY STATES
+   ====================================== */
+
+.empty-state {
+  text-align: center;
+  padding: 24px var(--taskpane-padding);
+  color: #605e5c;
+}
+
+.empty-state-icon {
+  font-size: 32px;
+  margin-bottom: var(--taskpane-padding);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: var(--taskpane-font-size);
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #323130;
+}
+
+.empty-state-subtitle {
+  font-size: var(--taskpane-font-size-sm);
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.empty-state-action {
+  margin-top: var(--taskpane-padding);
+}
+
+/* ======================================
+   SYNC CONTROLS
+   ====================================== */
+
+.sync-controls {
+  background: var(--taskpane-surface);
+  border: 1px solid var(--taskpane-border);
+  border-radius: var(--taskpane-border-radius);
+  padding: var(--taskpane-padding);
+  margin-bottom: 16px;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: var(--taskpane-gap);
+  margin-bottom: var(--taskpane-gap);
+  font-size: var(--taskpane-font-size-sm);
+  color: #605e5c;
+}
+
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sync-spinner {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #edebe9;
+  border-top: 1px solid #0078d4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.sync-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--taskpane-gap);
+}
+
+/* ======================================
+   TASKPANE FOOTER
+   ====================================== */
+
+.taskpane-footer {
+  padding: var(--taskpane-gap) var(--taskpane-padding);
+  background: var(--taskpane-surface);
+  border-top: 1px solid var(--taskpane-border);
+  flex-shrink: 0;
+  font-size: var(--taskpane-font-size-xs);
+  text-align: center;
+  color: #8a8886;
+}
+
+/* ======================================
+   RESPONSIVE ADJUSTMENTS
+   ====================================== */
+
+@media (max-width: 320px) {
+  .taskpane-header {
+    padding: var(--taskpane-gap) var(--taskpane-padding);
+  }
+  
+  .taskpane-body {
+    padding: var(--taskpane-padding);
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  
+  .stat-card {
+    padding: var(--taskpane-gap) 6px;
+  }
+  
+  .stat-number {
+    font-size: 16px;
+  }
+  
+  .action-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  
+  .recent-item {
+    padding: var(--taskpane-gap) var(--taskpane-padding);
+  }
+  
+  .form-group {
+    margin-bottom: var(--taskpane-padding);
+  }
+}
+
+/* ======================================
+   DARK MODE SUPPORT (IF NEEDED)
+   ====================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --taskpane-bg: #2b2b2b;
+    --taskpane-surface: #3a3a3a;
+    --taskpane-border: #484848;
+  }
+  
+  .taskpane-container {
+    color: #ffffff;
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    background: var(--taskpane-surface);
+    color: #ffffff;
+  }
+  
+  .stat-card,
+  .action-card,
+  .recent-proposals {
+    background: var(--taskpane-surface);
+    border-color: var(--taskpane-border);
+  }
+}
+
+/* ======================================
+   ACCESSIBILITY IMPROVEMENTS
+   ====================================== */
+
+.taskpane-container :focus {
+  outline: 2px solid #0078d4;
+  outline-offset: 1px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .view,
+  .message,
+  .stat-card,
+  .action-card,
+  .recent-item {
+    animation: none;
+    transition: none;
+  }
+  
+  .loading-spinner,
+  .sync-spinner {
+    animation: none;
+  }
+  
+  .status-dot.connecting {
+    animation: none;
+  }
+}

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" 
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" 
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" 
+           xsi:type="TaskPaneApp">
+
+  <!-- Begin Basic Settings: Add-in metadata, used for all versions of Office unless override provided. -->
+  <Id>12345678-1234-1234-1234-123456789012</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>UNICEF</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Enhanced Proposal Management System"/>
+  <Description DefaultValue="A comprehensive proposal management system with advanced budget tracking and workflow automation for implementing partners and specialists."/>
+  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://support.unicef.org"/>
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+  </AppDomains>
+
+  <!-- End Basic Settings. -->
+
+  <!-- Begin TaskPane Mode. You can use this mode for a task pane add-in or content add-in. -->
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:3000/taskpane.html"/>
+  </DefaultSettings>
+
+  <!-- End TaskPane Mode. -->
+
+  <!-- Begin Add-in Commands Mode. -->
+  <Permissions>ReadWriteDocument</Permissions>
+  
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <!-- GetStarted callout -->
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          
+          <!-- Function file is a HTML page that includes the JavaScript where functions for ExecuteAction will be called. -->
+          <FunctionFile resid="Contoso.DesktopFunctionFile.Url"/>
+
+          <!-- PrimaryCommandSurface is the main Office Ribbon. -->
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <!-- Use OfficeTab to extend an existing Tab. Use CustomTab to create a new tab. -->
+            <OfficeTab id="TabHome">
+              <!-- Ensure you provide a unique id for the group. Recommendation for any language is to use your company name along with the add-in name. -->
+              <Group id="ProposalManagement.Group1">
+                <Label resid="ProposalManagement.Group1Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="ProposalManagement.tpicon_16x16"/>
+                  <bt:Image size="32" resid="ProposalManagement.tpicon_32x32"/>
+                  <bt:Image size="80" resid="ProposalManagement.tpicon_80x80"/>
+                </Icon>
+
+                <!-- Control. It can be of type "Button" or "Menu". -->
+                <Control xsi:type="Button" id="ProposalManagement.TaskpaneButton">
+                  <Label resid="ProposalManagement.TaskpaneButton.Label"/>
+                  <Supertip>
+                    <Title resid="ProposalManagement.TaskpaneButton.Label"/>
+                    <Description resid="ProposalManagement.TaskpaneButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="ProposalManagement.tpicon_16x16"/>
+                    <bt:Image size="32" resid="ProposalManagement.tpicon_32x32"/>
+                    <bt:Image size="80" resid="ProposalManagement.tpicon_80x80"/>
+                  </Icon>
+
+                  <!-- This is what happens when the command is triggered (E.g. click on the Ribbon). Supported actions are ExecuteFunction or ShowTaskpane. -->
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <!-- Provide a URL resource id for the location that will be displayed on the task pane. -->
+                    <SourceLocation resid="ProposalManagement.Taskpane.Url"/>
+                  </Action>
+                </Control>
+
+                <Control xsi:type="Button" id="ProposalManagement.FullscreenButton">
+                  <Label resid="ProposalManagement.FullscreenButton.Label"/>
+                  <Supertip>
+                    <Title resid="ProposalManagement.FullscreenButton.Label"/>
+                    <Description resid="ProposalManagement.FullscreenButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="ProposalManagement.fullscreen_16x16"/>
+                    <bt:Image size="32" resid="ProposalManagement.fullscreen_32x32"/>
+                    <bt:Image size="80" resid="ProposalManagement.fullscreen_80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId2</TaskpaneId>
+                    <SourceLocation resid="ProposalManagement.Fullscreen.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <!-- You can use resources across hosts and form factors. -->
+    <Resources>
+      <bt:Images>
+        <bt:Image id="ProposalManagement.tpicon_16x16" DefaultValue="https://localhost:3000/assets/icon-16.png"/>
+        <bt:Image id="ProposalManagement.tpicon_32x32" DefaultValue="https://localhost:3000/assets/icon-32.png"/>
+        <bt:Image id="ProposalManagement.tpicon_80x80" DefaultValue="https://localhost:3000/assets/icon-80.png"/>
+        <bt:Image id="ProposalManagement.fullscreen_16x16" DefaultValue="https://localhost:3000/assets/fullscreen-16.png"/>
+        <bt:Image id="ProposalManagement.fullscreen_32x32" DefaultValue="https://localhost:3000/assets/fullscreen-32.png"/>
+        <bt:Image id="ProposalManagement.fullscreen_80x80" DefaultValue="https://localhost:3000/assets/fullscreen-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://go.microsoft.com/fwlink/?LinkId=276812"/>
+        <bt:Url id="ProposalManagement.Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
+        <bt:Url id="ProposalManagement.Fullscreen.Url" DefaultValue="https://localhost:3000/fullscreen.html"/>
+        <bt:Url id="Contoso.DesktopFunctionFile.Url" DefaultValue="https://localhost:3000/function-file/function-file.html"/>
+      </bt:Urls>
+      <!-- ShortStrings max characters==125. -->
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Get started with Enhanced Proposal Management!"/>
+        <bt:String id="ProposalManagement.TaskpaneButton.Label" DefaultValue="Quick Access"/>
+        <bt:String id="ProposalManagement.FullscreenButton.Label" DefaultValue="Full Dashboard"/>
+        <bt:String id="ProposalManagement.Group1Label" DefaultValue="Proposal Management"/>
+      </bt:ShortStrings>
+      <!-- LongStrings max characters==250. -->
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Your sample add-in loaded successfully. Go to the HOME tab and click the 'Show Taskpane' button to get started."/>
+        <bt:String id="ProposalManagement.TaskpaneButton.Tooltip" DefaultValue="Open the proposal management taskpane for quick access to essential features."/>
+        <bt:String id="ProposalManagement.FullscreenButton.Tooltip" DefaultValue="Open the full dashboard with comprehensive proposal and budget management tools."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+  <!-- End Add-in Commands Mode. -->
+
+</OfficeApp>

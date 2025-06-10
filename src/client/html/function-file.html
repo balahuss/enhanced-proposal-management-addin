@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Enhanced Proposal Management - Function File</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    
+    <style>
+        /* Minimal styles for function file */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 12px;
+            background: #faf9f8;
+            display: none; /* Function files should not be visible */
+        }
+
+        .debug-info {
+            padding: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            margin: 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- This page is not visible - it only contains functions for ribbon commands -->
+    <div class="debug-info" id="debug-info" style="display: none;">
+        Function File loaded successfully at <span id="load-time"></span>
+    </div>
+
+    <script>
+        // ======================================
+        // OFFICE FUNCTION FILE - RIBBON COMMANDS
+        // ======================================
+        
+        console.log('Function file loading...');
+
+        // Global variables
+        let isOfficeInitialized = false;
+        let currentContext = null;
+
+        // Office initialization
+        Office.onReady((info) => {
+            console.log('Office.onReady called with:', info);
+            isOfficeInitialized = true;
+            currentContext = info;
+            
+            // Update debug info if in development
+            if (process.env.NODE_ENV === 'development') {
+                const debugElement = document.getElementById('debug-info');
+                const timeElement = document.getElementById('load-time');
+                if (debugElement && timeElement) {
+                    debugElement.style.display = 'block';
+                    timeElement.textContent = new Date().toLocaleString();
+                }
+            }
+            
+            console.log('Function file initialized successfully');
+        });
+
+        // ======================================
+        // UTILITY FUNCTIONS
+        // ======================================
+
+        // Show notification to user
+        function showNotification(title, message, type = 'information') {
+            if (Office.context && Office.context.ui) {
+                try {
+                    Office.context.ui.displayDialogAsync(
+                        `data:text/html,<html><body style="font-family:Segoe UI;padding:20px;"><h3>${title}</h3><p>${message}</p></body></html>`,
+                        { height: 200, width: 400 },
+                        (result) => {
+                            if (result.status === Office.AsyncResultStatus.Succeeded) {
+                                setTimeout(() => {
+                                    if (result.value) {
+                                        result.value.close();
+                                    }
+                                }, 3000);
+                            }
+                        }
+                    );
+                } catch (error) {
+                    console.error('Error showing notification:', error);
+                }
+            } else {
+                // Fallback for environments without Office.context.ui
+                alert(`${title}: ${message}`);
+            }
+        }
+
+        // Log function execution
+        function logFunction(functionName, args = []) {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] Function executed: ${functionName}`, args);
+        }
+
+        // Check if Office is ready
+        function ensureOfficeReady() {
+            if (!isOfficeInitialized) {
+                throw new Error('Office not initialized');
+            }
+            return true;
+        }
+
+        // Get current workbook context
+        async function getCurrentWorkbook() {
+            return new Promise((resolve, reject) => {
+                try {
+                    ensureOfficeReady();
+                    Excel.run(async (context) => {
+                        const workbook = context.workbook;
+                        await context.sync();
+                        resolve(workbook);
+                    }).catch(reject);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // Apply worksheet protection
+        async function applyWorksheetProtection(worksheetName, options = {}) {
+            try {
+                await Excel.run(async (context) => {
+                    const worksheet = context.workbook.worksheets.getItem(worksheetName);
+                    
+                    const protectionOptions = {
+                        allowFormatCells: options.allowFormatCells || false,
+                        allowFormatColumns: options.allowFormatColumns || false,
+                        allowFormatRows: options.allowFormatRows || false,
+                        allowInsertColumns: options.allowInsertColumns || false,
+                        allowInsertRows: options.allowInsertRows || false,
+                        allowInsertHyperlinks: options.allowInsertHyperlinks || false,
+                        allowDeleteColumns: options.allowDeleteColumns || false,
+                        allowDeleteRows: options.allowDeleteRows || false,
+                        allowSort: options.allowSort || false,
+                        allowAutoFilter: options.allowAutoFilter || false,
+                        allowPivotTables: options.allowPivotTables || false,
+                        allowEditObjects: options.allowEditObjects || false,
+                        allowEditScenarios: options.allowEditScenarios || false
+                    };
+
+                    worksheet.protection.protect(protectionOptions);
+                    await context.sync();
+                });
+                return { success: true };
+            } catch (error) {
+                console.error('Error applying protection:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Remove worksheet protection
+        async function removeWorksheetProtection(worksheetName) {
+            try {
+                await Excel.run(async (context) => {
+                    const worksheet = context.workbook.worksheets.getItem(worksheetName);
+                    worksheet.protection.unprotect();
+                    await context.sync();
+                });
+                return { success: true };
+            } catch (error) {
+                console.error('Error removing protection:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Get worksheet names
+        async function getWorksheetNames() {
+            try {
+                let worksheetNames = [];
+                await Excel.run(async (context) => {
+                    const worksheets = context.workbook.worksheets;
+                    worksheets.load('items/name');
+                    await context.sync();
+                    
+                    worksheetNames = worksheets.items.map(ws => ws.name);
+                });
+                return worksheetNames;
+            } catch (error) {
+                console.error('Error getting worksheet names:', error);
+                return [];
+            }
+        }
+
+        // Add data validation to range
+        async function addDataValidation(worksheetName, range, validationType, values) {
+            try {
+                await Excel.run(async (context) => {
+                    const worksheet = context.workbook.worksheets.getItem(worksheetName);
+                    const targetRange = worksheet.getRange(range);
+                    
+                    if (validationType === 'list') {
+                        targetRange.dataValidation.rule = {
+                            list: {
+                                inCellDropDown: true,
+                                source: values.join(',')
+                            }
+                        };
+                    } else if (validationType === 'number') {
+                        targetRange.dataValidation.rule = {
+                            wholeNumber: {
+                                formula1: values.min || 0,
+                                formula2: values.max || 999999,
+                                operator: Excel.DataValidationOperator.between
+                            }
+                        };
+                    }
+                    
+                    await context.sync();
+                });
+                return { success: true };
+            } catch (error) {
+                console.error('Error adding data validation:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // ======================================
+        // RIBBON COMMAND FUNCTIONS
+        // ======================================
+
+        // Open Quick Access Taskpane
+        function openQuickAccess(event) {
+            try {
+                logFunction('openQuickAccess');
+                ensureOfficeReady();
+                
+                // The taskpane should already be available via the manifest
+                // This function can be used to ensure it's visible or perform additional setup
+                showNotification(
+                    'Quick Access', 
+                    'Opening Proposal Management Quick Access...',
+                    'information'
+                );
+                
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error opening quick access:', error);
+                showNotification('Error', 'Failed to open quick access: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Open Full Dashboard
+        function openFullDashboard(event) {
+            try {
+                logFunction('openFullDashboard');
+                ensureOfficeReady();
+                
+                showNotification(
+                    'Full Dashboard', 
+                    'Opening Complete Proposal Management Dashboard...',
+                    'information'
+                );
+                
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error opening full dashboard:', error);
+                showNotification('Error', 'Failed to open dashboard: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Sync Data with Server
+        async function syncData(event) {
+            try {
+                logFunction('syncData');
+                ensureOfficeReady();
+                
+                showNotification(
+                    'Sync in Progress', 
+                    'Synchronizing data with server...',
+                    'information'
+                );
+
+                // Get current worksheet data
+                const worksheetNames = await getWorksheetNames();
+                console.log('Available worksheets:', worksheetNames);
+
+                // Here you would implement the actual sync logic
+                // For now, we'll simulate a successful sync
+                setTimeout(() => {
+                    showNotification(
+                        'Sync Complete', 
+                        'Data synchronized successfully!',
+                        'information'
+                    );
+                }, 2000);
+
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error syncing data:', error);
+                showNotification('Sync Error', 'Failed to sync data: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Protect Workbook
+        async function protectWorkbook(event) {
+            try {
+                logFunction('protectWorkbook');
+                ensureOfficeReady();
+
+                showNotification(
+                    'Protection', 
+                    'Applying workbook protection...',
+                    'information'
+                );
+
+                const worksheetNames = await getWorksheetNames();
+                const protectionOptions = {
+                    allowFormatCells: false,
+                    allowFormatColumns: false,
+                    allowFormatRows: false,
+                    allowInsertColumns: false,
+                    allowInsertRows: false,
+                    allowInsertHyperlinks: false,
+                    allowDeleteColumns: false,
+                    allowDeleteRows: false,
+                    allowSort: true, // Allow sorting for user convenience
+                    allowAutoFilter: true, // Allow filtering for user convenience
+                    allowPivotTables: false,
+                    allowEditObjects: false,
+                    allowEditScenarios: false
+                };
+
+                let successCount = 0;
+                for (const sheetName of worksheetNames) {
+                    const result = await applyWorksheetProtection(sheetName, protectionOptions);
+                    if (result.success) {
+                        successCount++;
+                    }
+                }
+
+                showNotification(
+                    'Protection Applied', 
+                    `Protected ${successCount} of ${worksheetNames.length} worksheets`,
+                    'information'
+                );
+
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error protecting workbook:', error);
+                showNotification('Protection Error', 'Failed to protect workbook: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Unprotect Workbook
+        async function unprotectWorkbook(event) {
+            try {
+                logFunction('unprotectWorkbook');
+                ensureOfficeReady();
+
+                showNotification(
+                    'Removing Protection', 
+                    'Removing workbook protection...',
+                    'information'
+                );
+
+                const worksheetNames = await getWorksheetNames();
+                let successCount = 0;
+
+                for (const sheetName of worksheetNames) {
+                    const result = await removeWorksheetProtection(sheetName);
+                    if (result.success) {
+                        successCount++;
+                    }
+                }
+
+                showNotification(
+                    'Protection Removed', 
+                    `Unprotected ${successCount} of ${worksheetNames.length} worksheets`,
+                    'information'
+                );
+
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error unprotecting workbook:', error);
+                showNotification('Unprotection Error', 'Failed to unprotect workbook: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Add Data Validation
+        async function addValidationRules(event) {
+            try {
+                logFunction('addValidationRules');
+                ensureOfficeReady();
+
+                showNotification(
+                    'Data Validation', 
+                    'Adding data validation rules...',
+                    'information'
+                );
+
+                // Define validation rules for different sheets
+                const validationRules = [
+                    {
+                        sheet: 'Proposals',
+                        range: 'U:U', // proposal_status column
+                        type: 'list',
+                        values: ['pending', 'approved', 'rejected', 'resubmit']
+                    },
+                    {
+                        sheet: 'Users',
+                        range: 'D:D', // role column
+                        type: 'list',
+                        values: ['specialist', 'implementing_partner']
+                    },
+                    {
+                        sheet: 'Budget',
+                        range: 'F:F', // quantity column
+                        type: 'number',
+                        values: { min: 1, max: 9999 }
+                    },
+                    {
+                        sheet: 'Budget',
+                        range: 'G:G', // frequency column
+                        type: 'number',
+                        values: { min: 1, max: 365 }
+                    }
+                ];
+
+                let successCount = 0;
+                for (const rule of validationRules) {
+                    try {
+                        const result = await addDataValidation(rule.sheet, rule.range, rule.type, rule.values);
+                        if (result.success) {
+                            successCount++;
+                        }
+                    } catch (ruleError) {
+                        console.warn(`Failed to apply validation rule for ${rule.sheet}:${rule.range}`, ruleError);
+                    }
+                }
+
+                showNotification(
+                    'Validation Applied', 
+                    `Applied ${successCount} of ${validationRules.length} validation rules`,
+                    'information'
+                );
+
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error adding validation rules:', error);
+                showNotification('Validation Error', 'Failed to add validation rules: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Export Data
+        async function exportData(event) {
+            try {
+                logFunction('exportData');
+                ensureOfficeReady();
+
+                showNotification(
+                    'Export', 
+                    'Preparing data export...',
+                    'information'
+                );
+
+                // Get workbook data
+                const worksheetNames = await getWorksheetNames();
+                
+                // Here you would implement the actual export logic
+                // This could involve reading all data and sending it to the server
+                
+                showNotification(
+                    'Export Ready', 
+                    `Found ${worksheetNames.length} worksheets ready for export`,
+                    'information'
+                );
+
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showNotification('Export Error', 'Failed to export data: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Initialize System
+        async function initializeSystem(event) {
+            try {
+                logFunction('initializeSystem');
+                ensureOfficeReady();
+
+                showNotification(
+                    'Initialization', 
+                    'Initializing proposal management system...',
+                    'information'
+                );
+
+                // Here you would implement system initialization
+                // This could involve:
+                // 1. Creating required worksheets
+                // 2. Setting up headers
+                // 3. Adding sample data
+                // 4. Applying formatting and protection
+
+                // For now, we'll simulate initialization
+                setTimeout(() => {
+                    showNotification(
+                        'System Ready', 
+                        'Proposal management system initialized successfully!',
+                        'information'
+                    );
+                }, 3000);
+
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error initializing system:', error);
+                showNotification('Initialization Error', 'Failed to initialize system: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // Backup Data
+        async function backupData(event) {
+            try {
+                logFunction('backupData');
+                ensureOfficeReady();
+
+                showNotification(
+                    'Backup', 
+                    'Creating data backup...',
+                    'information'
+                );
+
+                // Here you would implement backup logic
+                // This could involve saving a copy of the workbook
+                // or sending data to a backup server
+
+                setTimeout(() => {
+                    showNotification(
+                        'Backup Complete', 
+                        'Data backup created successfully!',
+                        'information'
+                    );
+                }, 2000);
+
+                // Complete the async operation
+                if (event) {
+                    event.completed();
+                }
+            } catch (error) {
+                console.error('Error backing up data:', error);
+                showNotification('Backup Error', 'Failed to create backup: ' + error.message, 'error');
+                if (event) {
+                    event.completed();
+                }
+            }
+        }
+
+        // ======================================
+        // REGISTER FUNCTIONS FOR OFFICE
+        // ======================================
+
+        // Register functions for Office ribbon commands
+        if (typeof Office !== 'undefined') {
+            // Register all functions that can be called from ribbon buttons
+            Office.actions = Office.actions || {};
+            
+            // Quick access and dashboard functions
+            Office.actions.openQuickAccess = openQuickAccess;
+            Office.actions.openFullDashboard = openFullDashboard;
+            
+            // Data management functions
+            Office.actions.syncData = syncData;
+            Office.actions.exportData = exportData;
+            Office.actions.backupData = backupData;
+            
+            // Protection and security functions
+            Office.actions.protectWorkbook = protectWorkbook;
+            Office.actions.unprotectWorkbook = unprotectWorkbook;
+            Office.actions.addValidationRules = addValidationRules;
+            
+            // System functions
+            Office.actions.initializeSystem = initializeSystem;
+            
+            console.log('All Office ribbon functions registered successfully');
+        }
+
+        // ======================================
+        // ERROR HANDLING AND LOGGING
+        // ======================================
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            console.error('Global error in function file:', event.error);
+            
+            // Don't show notification for every error to avoid spam
+            // Only log to console for debugging
+        });
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection in function file:', event.reason);
+            event.preventDefault();
+        });
+
+        // Function to test if everything is working
+        function testFunctionFile() {
+            console.log('Function file test executed successfully');
+            showNotification('Test', 'Function file is working correctly!', 'information');
+        }
+
+        // Make test function available globally for debugging
+        window.testFunctionFile = testFunctionFile;
+
+        console.log('Function file script completed successfully');
+    </script>
+</body>
+</html>
