@@ -430,6 +430,27 @@
     <script>
         // Taskpane JavaScript will be loaded here by webpack
         console.log('📊 Taskpane HTML loaded');
-    </script>
+     
+// Demo mode - bypass authentication for testing
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulate successful login
+            alert('Demo Mode: Login successful!\n\nIn production, this would connect to the backend server.');
+            
+            // Hide login view and show main view
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('main-view').style.display = 'block';
+            
+            // Set demo user data
+            document.getElementById('user-name').textContent = 'Demo User';
+            document.getElementById('user-role').textContent = 'Specialist';
+        });
+    }
+});
+</script>
 </body>
 </html>
